@@ -1,0 +1,200 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+<script>
+  function getcookie(name) {
+    const value = `; ${document.cookie} `;
+    const parts = value.split(`; ${name}=`)
+    if (parts.length == 2) {
+      return parts.pop().split(';').shift()
+    }
+  }
+
+ 
+  function save_changes(post_id) {
+    const content_of_the_post = document.querySelector(`#textarea_${post_id}`)
+      .value 
+    const content = document.querySelector(`#content_${post_id}`)
+    const modal = document.querySelector(`modal_edit_post_${post_id}`)
+    fetch(`/edit/${post_id}`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "X-CSRFToken": getcookie("csrftoken")
+        },
+        body: JSON.stringify({
+          content: content_of_the_post
+        })
+      })
+
+      .then(response => {
+        return response.json()
+      })
+      .then(result => {
+        content.innerHTML = result.data;
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.setAttribute('style', 'display: none');
+        const modalsBackdrops = document.getElementsByClassName('modal-backdrop');
+        for (let i = 0; i < modalsBackdrops.length; i++) {
+          document.body.removeChild(modalsBackdrops[i]);
+        }
+      })
+  }
+
+
+
+  // function like(id, liked_content) {
+
+  //     const b = document.getElementById(`${id}`)
+  //     b.classList.remove("fa-thumbs-up")
+  //     b.classList.remove("fa-thumbs-down")
+
+  //   if (liked_content.indexOf(id) >= 0) {
+  //     var liked = true;
+
+  //   } else {
+  //     var liked = false;
+  //   }
+
+  //     if (liked === true) {
+  //       fetch(`/removing_Like/${id}`)
+  //         .then(response => response.json)
+  //         .then(result => {
+  //           b.classList.add("fa-thumbs-up")
+  //         })
+
+  //     }else {
+  //       fetch(`/adding_Like/${id}`)
+  //         .then(response => response.json)
+  //         .then(result => {
+  //           b.classList.add("fa-thumbs-down")
+
+  //         })
+
+  //     }
+  //     liked = !liked
+ 
+  // }
+
+
+  
+  function like(id) {
+  const b = document.getElementById(`${id}`);
+  const isLiked = b.classList.contains("fa-thumbs-up");
+
+  if (isLiked) {
+    fetch(`/removing_Like/${id}`)
+      .then(response => response.json())
+      .then(result => {
+        b.classList.remove("fa-thumbs-up");
+        b.classList.add("fa-thumbs-down");
+      });
+  } else {
+    fetch(`/adding_Like/${id}`)
+      .then(response => response.json())
+      .then(result => {
+        b.classList.remove("fa-thumbs-down");
+        b.classList.add("fa-thumbs-up");
+      });
+  }
+}
+
+
+</script>
+
+
+
+
+<h1 class="text-secondary text-center ">All posts</h1>
+<div class="mt-2 ml-4 mr-4">
+
+
+  {% if user.is_authenticated %}
+  <h2 class="text-secondary ">new post</h2>
+  <form action="{% url 'new_post' %}" method="post" class="form-group text-center">
+    {% csrf_token %}
+    <textarea name="content" cols="10" rows="5" class="form-control border-secondary "></textarea>
+    <br>
+    <input type="submit" value="post" class="btn btn-dark ">
+  </form>
+  {% endif %}
+
+  {% for p in post_page %}
+  <div class="d-flex justify-content-center align-items-center">
+    <div class="border border-secondary rounded p-2 m-2 text-dark text-center col-6 ">
+      <h3><a href="{% url 'profile' user_id=p.user.id %}">@{{p.user}}</a></h3>
+      <h4 id="content_{{ p.id }}">{{p.content}}</h4>
+      <p>{{p.date}}</p>
+
+      {% if user.is_authenticated %}
+      {% if user == p.user %}
+
+      <button class="btn btn-dark" data-toggle="modal" data-target="#modal_edit_{{p.id}}">edit</button>
+
+
+
+
+      <div class="modal fade" id="modal_edit_{{p.id}}" aria-labelledby="modal_edit_{{p.id}}_label" aria-hidden="true"
+        tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">edit post</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <textarea name="content" id="textarea_{{p.id}}" rows="7" class="form-control">{{p.content}}</textarea>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="save_changes('{{p.id}}')">Save</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+   
+   
+      {% else %}
+      {% if p.id in person_you_liked %}
+      <button id="{{p.id}}" class=" col-1 btn btn-dark fa-solid fa-thumbs-down"
+        onclick="like('{{p.id}}' , '{{liked_content}}')"></button>
+      {% else %}
+      <button id="{{p.id}}" class=" col-1 btn btn-dark fa-solid fa-thumbs-up"
+        onclick="like('{{p.id}}' , '{{liked_content}}')"></button>
+      {% endif %}
+
+
+
+
+      {% endif %}
+      {% endif %}
+
+    </div>
+  </div>
+
+  {% endfor %}
+
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if post_page.has_previous%}
+      <li class="page-item"><a class="page-link" href="?page={{post_page.previous_page_number}}">Previous</a></li>
+      {% endif %}
+      {% if post_page.has_next%}
+      <li class="page-item"><a class="page-link" href="?page={{post_page.next_page_number}}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+</div>
+
+{% endblock %}
+
+
+
+
+

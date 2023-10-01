@@ -1,0 +1,64 @@
+{% extends "network/layout.html" %} {% block body %}
+
+
+<h1 class="text-dark text-center">{{username}}</h1>
+
+<div class="mt-2 ml-4 mr-4">
+  <div class="container d-flex justify-content-center">
+    <h3 class="text-dark text-center m-4">followers : {{followers.count}}</h3>
+    <h3 class="text-dark text-center m-4">following : {{following.count}}</h3>
+  </div>
+
+  {% if user.is_authenticated %}
+  {% if user != user_profile %}
+  {% if is_following %}
+
+  <form action="{% url 'unfollow' %}" method="post" class="form text-center">
+    {% csrf_token %}
+    <input type="hidden" name="userfollow" value="{{user_profile}}" />
+    <input type="submit" value="Unfollow" class="btn btn-danger form" />
+  </form>
+
+  {% else %}
+  <form action="{% url 'follow' %}" method="post" class="form text-center">
+    {% csrf_token %}
+    <input type="hidden" name="userfollow" value="{{user_profile}}" />
+    <input type="submit" value="follow" class="btn btn-primary form" />
+  </form>
+
+  {% endif %}
+  {% endif %}
+  {% endif %}
+</div>
+
+{% for p in post_page %}
+<div class="d-flex justify-content-center align-items-center">
+  <div class="border border-secondary rounded p-2 m-2 text-dark text-center col-6">
+    <h3 class="text-dark text-center">
+      <a href="{% url 'profile' user_id=p.user.id %}">@{{p.user}}</a>
+    </h3>
+    <h4 class="text-dark text-center">{{p.content}}</h4>
+    <p class="text-dark text-center">{{p.date}}</p>
+
+  </div>
+</div>
+{% endfor %}
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination">
+    {% if post_page.has_previous%}
+    <li class="page-item">
+      <a class="page-link" href="?page={{post_page.previous_page_number}}">Previous</a>
+    </li>
+    {% endif %} {% if post_page.has_next%}
+    <li class="page-item">
+      <a class="page-link" href="?page={{post_page.next_page_number}}">Next</a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% endblock %}
+
+</div>
+</div>

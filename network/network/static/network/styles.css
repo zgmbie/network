@@ -1,0 +1,10 @@
+
+body{
+  background-image:radial-gradient( #D2E0FB , #F9F3CC);
+  font-family: inter , sans-serif;
+  
+}
+.page-item a{
+  background-color: #343a40;
+  color: #fff;
+}

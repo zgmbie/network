@@ -1,0 +1,40 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+<h1 class="text-secondary text-center ">following</h1>
+
+<div class="mt-2 ml-4 mr-4">
+
+
+  {% for p in post_page %}
+  <div class="d-flex justify-content-center align-items-center">
+    <div class="border border-secondary rounded p-2 m-2 text-dark text-center col-6 ">
+      <h3><a href="{% url 'profile' user_id=p.user.id %}">@{{p.user}}</a></h3>
+      <h4>{{p.content}}</h4>
+      <p>{{p.date}}</p>
+
+
+
+
+    </div>
+  </div>
+  {% endfor %}
+
+
+
+
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if post_page.has_previous%}
+      <li class="page-item"><a class="page-link" href="?page={{post_page.previous_page_number}}">Previous</a></li>
+      {% endif %}
+      {% if post_page.has_next%}
+      <li class="page-item"><a class="page-link" href="?page={{post_page.next_page_number}}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+</div>
+
+{% endblock %}
